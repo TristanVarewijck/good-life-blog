@@ -1,4 +1,3 @@
-import styles from "./PostPreviewCard.module.scss";
 import { Card } from "antd";
 import { EditOutlined, SendOutlined, LikeOutlined } from "@ant-design/icons";
 import { useRouter } from "next/router";
@@ -23,7 +22,6 @@ const PostPreviewCard = ({
     <Card
       key={uid}
       hoverable
-      className={styles.card}
       cover={
         <img
           alt={cover.alt}
