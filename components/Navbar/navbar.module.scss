@@ -1,0 +1,16 @@
+.edits{
+font-weight: 500;
+  li:nth-of-type(4){
+    margin: 0 auto;
+    margin-right: 0;
+    a{
+        border-radius: 20px; 
+        color: var(--brand-color-white);
+        background-color: var(--brand-color-black);
+        padding: 12px 15px;
+        &:hover{
+            color: var(--brand-color-white);
+        }
+    }
+  };
+}
