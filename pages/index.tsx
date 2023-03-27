@@ -20,6 +20,8 @@ const Blog = ({ posts, categories }) => {
     };
   });
 
+  console.log(process.env.NEXT_PUBLIC_CMS_URL);
+
   const categoriesTabs = categories.data.map((category) => {
     return {
       key: category.attributes.name,
@@ -36,7 +38,7 @@ const Blog = ({ posts, categories }) => {
                   content={item.attributes.content}
                   cover={{
                     alt: item.attributes.cover.data.attributes.name,
-                    url: `${process.env.CMS_URL}${item.attributes.cover.data.attributes.url}`,
+                    url: `${process.env.NEXT_PUBLIC_CMS_URL}${item.attributes.cover.data.attributes.url}`,
                   }}
                   publishedAt={item.attributes.publishedAt}
                 />
@@ -72,7 +74,7 @@ const Blog = ({ posts, categories }) => {
                   item.attributes.cover.data
                     ? {
                         alt: item.attributes.cover.data.attributes.name,
-                        url: `${process.env.CMS_URL}${item.attributes.cover.data.attributes.url}`,
+                        url: `${process.env.NEXT_PUBLIC_CMS_URL}${item.attributes.cover.data.attributes.url}`,
                       }
                     : {
                         alt: "",
@@ -147,16 +149,22 @@ const Blog = ({ posts, categories }) => {
 };
 
 export const getStaticProps = async () => {
-  const postsRes = fetch(`${process.env.CMS_URL}/api/posts?populate=*`, {
-    headers: {
-      Authorization: `Bearer ${process.env.POST_CMS_ACTIONS}`,
-    },
-  });
-  const categoriesRes = fetch(`${process.env.CMS_URL}/api/categories`, {
-    headers: {
-      Authorization: `Bearer ${process.env.CATEGORY_CMS_ACTIONS}`,
-    },
-  });
+  const postsRes = fetch(
+    `${process.env.NEXT_PUBLIC_CMS_URL}/api/posts?populate=*`,
+    {
+      headers: {
+        Authorization: `Bearer ${process.env.NEXT_PUBLIC_POST_CMS_ACTIONS}`,
+      },
+    }
+  );
+  const categoriesRes = fetch(
+    `${process.env.NEXT_PUBLIC_CMS_URL}/api/categories`,
+    {
+      headers: {
+        Authorization: `Bearer ${process.env.NEXT_PUBLIC_CATEGORY_CMS_ACTIONS}`,
+      },
+    }
+  );
   const response = await Promise.all([postsRes, categoriesRes]);
 
   return {

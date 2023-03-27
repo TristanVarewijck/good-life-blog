@@ -1,4 +1,4 @@
-import { Breadcrumb, Space } from "antd";
+import { Breadcrumb } from "antd";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import Heading from "../components/Heading";
@@ -34,9 +34,9 @@ const PostDetail = ({ post }) => {
 };
 
 export const getStaticPaths = async () => {
-  const postRes = fetch(`${process.env.CMS_URL}/api/posts`, {
+  const postRes = fetch(`${process.env.NEXT_PUBLIC_CMS_URL}/api/posts`, {
     headers: {
-      Authorization: `Bearer ${process.env.POST_CMS_ACTIONS}`,
+      Authorization: `Bearer ${process.env.NEXT_PUBLIC_POST_CMS_ACTIONS}`,
     },
   });
   const response = await postRes;
@@ -50,10 +50,10 @@ export const getStaticPaths = async () => {
 
 export const getStaticProps = async ({ params }) => {
   const postRes = fetch(
-    `${process.env.CMS_URL}/api/posts?filters[slug]=${params.pid}`,
+    `${process.env.NEXT_PUBLIC_CMS_URL}/api/posts?filters[slug]=${params.pid}`,
     {
       headers: {
-        Authorization: `Bearer ${process.env.POST_CMS_ACTIONS}`,
+        Authorization: `Bearer ${process.env.NEXT_PUBLIC_POST_CMS_ACTIONS}`,
       },
     }
   );

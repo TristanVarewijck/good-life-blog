@@ -51,10 +51,10 @@ const Admin = ({ postDrafts, categories }) => {
         },
       };
 
-      await fetch(`${process.env.CMS_URL}/api/posts?populate=*`, {
+      await fetch(`${process.env.NEXT_PUBLIC_CMS_URL}/api/posts?populate=*`, {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${process.env.POST_CMS_ACTIONS}`,
+          Authorization: `Bearer ${process.env.NEXT_PUBLIC_POST_CMS_ACTIONS}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify(newPostDraft),
@@ -104,7 +104,7 @@ const Admin = ({ postDrafts, categories }) => {
                     item.attributes.cover.data
                       ? {
                           alt: item.attributes.cover.data.attributes.name,
-                          url: `${process.env.CMS_URL}${item.attributes.cover.data.attributes.url}`,
+                          url: `${process.env.NEXT_PUBLIC_CMS_URL}${item.attributes.cover.data.attributes.url}`,
                         }
                       : {
                           alt: "No Image placeholder",
@@ -145,7 +145,7 @@ const Admin = ({ postDrafts, categories }) => {
                   item.attributes.cover.data
                     ? {
                         alt: item.attributes.cover.data.attributes.name,
-                        url: `${process.env.CMS_URL}${item.attributes.cover.data.attributes.url}`,
+                        url: `${process.env.NEXT_PUBLIC_CMS_URL}${item.attributes.cover.data.attributes.url}`,
                       }
                     : {
                         alt: "No Image placeholder",
@@ -249,18 +249,21 @@ const Admin = ({ postDrafts, categories }) => {
 
 export const getStaticProps = async () => {
   const postsDraftsRes = fetch(
-    `${process.env.CMS_URL}/api/posts?publicationState=preview&filters[publishedAt][$null]=true&populate=*`,
+    `${process.env.NEXT_PUBLIC_CMS_URL}/api/posts?publicationState=preview&filters[publishedAt][$null]=true&populate=*`,
     {
       headers: {
-        Authorization: `Bearer ${process.env.POST_CMS_ACTIONS}`,
+        Authorization: `Bearer ${process.env.NEXT_PUBLIC_POST_CMS_ACTIONS}`,
       },
     }
   );
-  const categoriesRes = fetch(`${process.env.CMS_URL}/api/categories`, {
-    headers: {
-      Authorization: `Bearer ${process.env.CATEGORY_CMS_ACTIONS}`,
-    },
-  });
+  const categoriesRes = fetch(
+    `${process.env.NEXT_PUBLIC_CMS_URL}/api/categories`,
+    {
+      headers: {
+        Authorization: `Bearer ${process.env.NEXT_PUBLIC_CATEGORY_CMS_ACTIONS}`,
+      },
+    }
+  );
   const response = await Promise.all([postsDraftsRes, categoriesRes]);
 
   return {
