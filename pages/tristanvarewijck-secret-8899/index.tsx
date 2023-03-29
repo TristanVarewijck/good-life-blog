@@ -14,50 +14,90 @@ import { useState } from "react";
 import Heading from "../../components/Heading";
 import LayoutComponent from "../../components/LayoutComponent";
 import PostPreviewCard from "../../components/PostPreviewCard";
-import { openai } from "../../services/openai";
+import {
+  executeTextGeneration,
+  executeImageGeneration,
+} from "../../components/Utils/openai";
+const FormData = require("form-data");
 
 const Admin = ({ postDrafts, categories }) => {
   postDrafts.data.sort((a, b) => {
     Date.parse(b.attributes.createdAt) - Date.parse(a.attributes.createdAt);
   });
-
   const [currentItemGroup, setCurrentItemGroup] = useState<any[]>([]);
   const [isGeneratingPost, setIsGeneratingPost] = useState<boolean>(false);
+  const [form] = Form.useForm();
 
+  // handling the submission
   const onFinish = async (values: any) => {
     setIsGeneratingPost(true);
-
     try {
-      const contentCompletion = await openai.createCompletion({
-        model: "text-davinci-002",
+      const categoryObj = await categories.data.filter((category) => {
+        return category.attributes.name === values.category;
+      });
+
+      // text generation
+      const textCompletion = await executeTextGeneration({
         prompt: `Can you write a detailed blog post about ${values.prompt}`,
         max_tokens: 1024,
         temperature: 0.2,
         n: 1,
       });
 
-      const generatedContent =
-        await contentCompletion.data.choices[0].text.trim();
-      const categoryObj = await categories.data.filter((category) => {
-        return category.attributes.name === values.category;
+      // text content
+      const generatedContent: string =
+        await textCompletion.data.choices[0].text.trim();
+
+      // image generation
+      const imageCompletion = await executeImageGeneration({
+        prompt: values.title,
+        imageSize: "256x256",
       });
 
+      // image url / response / blob
+      const generatedImageUrl: string = await imageCompletion.data.data[0].url;
+      const resGeneratedImageUrl = await fetch(generatedImageUrl);
+      const resGeneratedImageUrlBlob = await resGeneratedImageUrl.blob();
+
+      // new post object
       const newPostDraft = {
         data: {
           title: values.title,
           content: generatedContent,
           category: categoryObj,
+          slug: values.title.split(" ").join("_"),
           publishedAt: null,
         },
       };
 
-      await fetch(`${process.env.NEXT_PUBLIC_CMS_URL}/api/posts?populate=*`, {
-        method: "POST",
+      const newPostDraftResponse = await fetch(
+        `${process.env.NEXT_PUBLIC_CMS_URL}/api/posts?populate=*`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${process.env.NEXT_PUBLIC_POST_CMS_ACTIONS}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(newPostDraft),
+        }
+      );
+      const newPostDraftData = await newPostDraftResponse.json();
+
+      const imageData = await new FormData();
+      await imageData.append(
+        "files",
+        resGeneratedImageUrlBlob,
+        `${values.title.split(" ").join("_")}.png`
+      );
+      await imageData.append("ref", "api::post.post");
+      await imageData.append("refId", newPostDraftData.data.id);
+      await imageData.append("field", "cover");
+      await fetch(`${process.env.NEXT_PUBLIC_CMS_URL}/api/upload`, {
         headers: {
           Authorization: `Bearer ${process.env.NEXT_PUBLIC_POST_CMS_ACTIONS}`,
-          "Content-Type": "application/json",
         },
-        body: JSON.stringify(newPostDraft),
+        method: "POST",
+        body: imageData,
       });
     } catch (error) {
       if (error.response) {
@@ -68,8 +108,10 @@ const Admin = ({ postDrafts, categories }) => {
       }
     }
     setIsGeneratingPost(false);
+    form.resetFields();
   };
 
+  // submit has failed
   const onFinishFailed = (errorInfo: any) => {
     console.log("Failed:", errorInfo);
   };
@@ -176,6 +218,7 @@ const Admin = ({ postDrafts, categories }) => {
       <Row>
         <Col span={12}>
           <Form
+            form={form}
             name="prompt"
             layout="vertical"
             initialValues={{ remember: true }}
@@ -189,6 +232,7 @@ const Admin = ({ postDrafts, categories }) => {
               rules={[{ required: true, message: "select a category" }]}
             >
               <Select
+                disabled={isGeneratingPost}
                 placeholder="Example: Lifestyle"
                 options={categories.data.map((category) => {
                   return {
@@ -204,7 +248,10 @@ const Admin = ({ postDrafts, categories }) => {
               name="title"
               rules={[{ required: true, message: "fill in title" }]}
             >
-              <Input placeholder="Example: How can i improve my productivy while working from home?" />
+              <Input
+                disabled={isGeneratingPost}
+                placeholder="Example: How can i improve my productivy while working from home?"
+              />
             </Form.Item>
 
             <Form.Item
@@ -212,7 +259,10 @@ const Admin = ({ postDrafts, categories }) => {
               name="prompt"
               rules={[{ required: true, message: "fill in subject" }]}
             >
-              <Input placeholder="Can you write a detailed blog post about: Example subject" />
+              <Input
+                disabled={isGeneratingPost}
+                placeholder="Can you write a detailed blog post about: Example subject"
+              />
             </Form.Item>
             <Form.Item>
               <Button

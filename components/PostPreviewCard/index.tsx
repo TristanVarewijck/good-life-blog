@@ -3,6 +3,7 @@ import { EditOutlined, SendOutlined, LikeOutlined } from "@ant-design/icons";
 import { useRouter } from "next/router";
 import { postProps } from "../../types";
 import { getDateFormatCreatedAt } from "../Utils/parseDate";
+import Image from "next/image";
 
 const PostPreviewCard = ({
   uid,
@@ -14,7 +15,7 @@ const PostPreviewCard = ({
 }: postProps) => {
   const router = useRouter();
   const { Meta } = Card;
-  const maxLengthContent = content.substring(0, 150);
+  const maxLengthContent = content.substring(0, 85);
   const previewText = maxLengthContent.trim() + "...";
   const parsedDate = getDateFormatCreatedAt(publishedAt);
 
@@ -23,11 +24,15 @@ const PostPreviewCard = ({
       key={uid}
       hoverable
       cover={
-        <img
-          alt={cover.alt}
-          src={cover.url}
-          onClick={() => router.push(slug)}
-        />
+        <div style={{ position: "relative", height: "275px" }}>
+          <Image
+            src={cover.url}
+            alt={cover.alt}
+            fill
+            style={{ objectFit: "cover" }}
+            onClick={() => router.push(slug)}
+          />
+        </div>
       }
       actions={[
         <LikeOutlined key="like" />,

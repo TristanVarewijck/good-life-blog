@@ -7,6 +7,7 @@ import Heading from "../components/Heading";
 import PostPreviewCard from "../components/PostPreviewCard";
 
 const Blog = ({ posts, categories }) => {
+  console.log(posts);
   posts.data.sort((a, b) => {
     Date.parse(b.attributes.createdAt) - Date.parse(a.attributes.createdAt);
   });
@@ -19,8 +20,6 @@ const Blog = ({ posts, categories }) => {
       value: post.attributes.title,
     };
   });
-
-  console.log(process.env.NEXT_PUBLIC_CMS_URL);
 
   const categoriesTabs = categories.data.map((category) => {
     return {

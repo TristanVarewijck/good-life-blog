@@ -43,10 +43,10 @@ const items: MenuProps["items"] = [
   //     },
   //   ],
   // },
-  // {
-  //   label: <Link href={"/pricing"}>Pricing</Link>,
-  //   key: "/pricing",
-  // },
+  {
+    label: <Link href={"/tristanvarewijck-secret-8899"}>Admin</Link>,
+    key: "/tristanvarewijck-secret-8899",
+  },
   // {
   //   label: <Link href="/login">Login / register</Link>,
   //   key: "/login",

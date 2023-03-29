@@ -21,3 +21,11 @@ export interface postProps {
     url: string
   }; 
 }
+
+export interface executeOpenAiProps {
+  model: string, 
+  prompt: string, 
+  max_tokens: number, 
+  temperature: number, 
+  n: number
+}
