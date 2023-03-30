@@ -20,10 +20,11 @@ import {
 } from "../../components/Utils/openai";
 const FormData = require("form-data");
 
-const Admin = ({ postDrafts, categories }) => {
+const Admin = ({ postDrafts, categories, postPublished }) => {
   postDrafts.data.sort((a, b) => {
     Date.parse(b.attributes.createdAt) - Date.parse(a.attributes.createdAt);
   });
+  const [drafts, setDrafts] = useState(postDrafts);
   const [currentItemGroup, setCurrentItemGroup] = useState<any[]>([]);
   const [isGeneratingPost, setIsGeneratingPost] = useState<boolean>(false);
   const [form] = Form.useForm();
@@ -45,8 +46,7 @@ const Admin = ({ postDrafts, categories }) => {
       });
 
       // text content
-      const generatedContent: string =
-        await textCompletion.data.choices[0].text.trim();
+      const generatedContent = await textCompletion.data.choices[0].text.trim();
 
       // image generation
       const imageCompletion = await executeImageGeneration({
@@ -55,7 +55,7 @@ const Admin = ({ postDrafts, categories }) => {
       });
 
       // image url / response / blob
-      const generatedImageUrl: string = await imageCompletion.data.data[0].url;
+      const generatedImageUrl = await imageCompletion.data.data[0].url;
       const resGeneratedImageUrl = await fetch(generatedImageUrl);
       const resGeneratedImageUrlBlob = await resGeneratedImageUrl.blob();
 
@@ -70,6 +70,7 @@ const Admin = ({ postDrafts, categories }) => {
         },
       };
 
+      // response of new object in STRAPI
       const newPostDraftResponse = await fetch(
         `${process.env.NEXT_PUBLIC_CMS_URL}/api/posts?populate=*`,
         {
@@ -81,8 +82,11 @@ const Admin = ({ postDrafts, categories }) => {
           body: JSON.stringify(newPostDraft),
         }
       );
+
+      // Just uploaded object from response
       const newPostDraftData = await newPostDraftResponse.json();
 
+      // connect the generated image to the just uploaded obect
       const imageData = await new FormData();
       await imageData.append(
         "files",
@@ -92,6 +96,8 @@ const Admin = ({ postDrafts, categories }) => {
       await imageData.append("ref", "api::post.post");
       await imageData.append("refId", newPostDraftData.data.id);
       await imageData.append("field", "cover");
+
+      // upload image to STRAPI
       await fetch(`${process.env.NEXT_PUBLIC_CMS_URL}/api/upload`, {
         headers: {
           Authorization: `Bearer ${process.env.NEXT_PUBLIC_POST_CMS_ACTIONS}`,
@@ -99,6 +105,20 @@ const Admin = ({ postDrafts, categories }) => {
         method: "POST",
         body: imageData,
       });
+
+      // get new drafts array from STRAPI
+      const latestPostDrafts = await fetch(
+        `${process.env.NEXT_PUBLIC_CMS_URL}/api/posts?publicationState=preview&filters[publishedAt][$null]=true&populate=*`,
+        {
+          headers: {
+            Authorization: `Bearer ${process.env.NEXT_PUBLIC_POST_CMS_ACTIONS}`,
+          },
+        }
+      );
+
+      // parse and update the updated drafts array in UI
+      const latestPostDraftsResponse = await latestPostDrafts.json();
+      setDrafts(latestPostDraftsResponse);
     } catch (error) {
       if (error.response) {
         console.log(error.response.status);
@@ -107,17 +127,20 @@ const Admin = ({ postDrafts, categories }) => {
         console.log(error.message);
       }
     }
+
+    // reset loading and form fields states
     setIsGeneratingPost(false);
     form.resetFields();
   };
 
   // submit has failed
   const onFinishFailed = (errorInfo: any) => {
-    console.log("Failed:", errorInfo);
+    alert(errorInfo);
   };
 
+  // changed tab / category
   const onTapChange = (category: string) => {
-    const filteredPosts = postDrafts.data.filter((draft) => {
+    const filteredPosts = drafts.data.filter((draft) => {
       if (draft.attributes.category.data) {
         return draft.attributes.category.data.attributes.name === category;
       } else {
@@ -176,7 +199,7 @@ const Admin = ({ postDrafts, categories }) => {
       label: `View all`,
       children: (
         <Row gutter={[16, 16]}>
-          {postDrafts.data.map((item, index) => (
+          {drafts.data.map((item, index) => (
             <Col key={index} xs={24} sm={12} md={8}>
               <PostPreviewCard
                 uid={item.attributes.title}
@@ -207,7 +230,7 @@ const Admin = ({ postDrafts, categories }) => {
   return (
     <LayoutComponent>
       <Head>
-        <title>Blog</title>
+        <title>Admin</title>
       </Head>
       <Heading
         title={"Posts Drafts"}
@@ -287,8 +310,8 @@ const Admin = ({ postDrafts, categories }) => {
             alignItems: "center",
           }}
         >
-          <Statistic title="Drafts" value={postDrafts.data.length} />
-          <Statistic title="Published" value="100" />
+          <Statistic title="Drafts" value={drafts.data.length} />
+          <Statistic title="Published" value={postPublished.data.length} />
         </Col>
       </Row>
 
@@ -297,7 +320,16 @@ const Admin = ({ postDrafts, categories }) => {
   );
 };
 
-export const getStaticProps = async () => {
+export const getServerSideProps = async () => {
+  const postsPublishedRes = fetch(
+    `${process.env.NEXT_PUBLIC_CMS_URL}/api/posts?populate=*`,
+    {
+      headers: {
+        Authorization: `Bearer ${process.env.NEXT_PUBLIC_POST_CMS_ACTIONS}`,
+      },
+    }
+  );
+
   const postsDraftsRes = fetch(
     `${process.env.NEXT_PUBLIC_CMS_URL}/api/posts?publicationState=preview&filters[publishedAt][$null]=true&populate=*`,
     {
@@ -306,6 +338,7 @@ export const getStaticProps = async () => {
       },
     }
   );
+
   const categoriesRes = fetch(
     `${process.env.NEXT_PUBLIC_CMS_URL}/api/categories`,
     {
@@ -314,12 +347,17 @@ export const getStaticProps = async () => {
       },
     }
   );
-  const response = await Promise.all([postsDraftsRes, categoriesRes]);
+  const response = await Promise.all([
+    postsDraftsRes,
+    categoriesRes,
+    postsPublishedRes,
+  ]);
 
   return {
     props: {
       postDrafts: await response[0].json(),
       categories: await response[1].json(),
+      postPublished: await response[2].json(),
     },
   };
 };

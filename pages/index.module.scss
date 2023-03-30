@@ -1,7 +1,20 @@
 .contentBox{
-    max-width: 650px;
-    margin: 0 auto;
-    border-left: 1px solid var(--brand-color-lightGray);
-    border-right: 1px solid var(--brand-color-lightGray);
-    padding: 0 15px 0 15px;
+max-width: 650px;
+min-height: 100vh;
+margin: 0 auto;
+padding: 0 15px 0 15px;
+line-height: 150%; 
+}
+
+.authorBox{
+display: flex; 
+align-items: baseline; 
+gap: 10px;
+}
+
+.imageContainer{
+position: relative;
+width: 100%;
+height: 500px;
+margin: 35px 0px 20px 0px;
 }

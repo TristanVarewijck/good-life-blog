@@ -1,12 +1,10 @@
 toDoList:
 
-4: Detail pages (structuring)
+6: Check the openai prompting (make it better) (structure content with prompts)
+4: Detail pages (code cleaning) (image sharpness)
 4: Detail pages admin
+4: Make private page really private!
 5: Deploy
-5: Rendering (new added posts states);
-6: Check the openai prompting (make it better)
-7: code cleaning
-8: published state
 9: SEO optimization
 
 \*\* Dall-E Beta for images in future

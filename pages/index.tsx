@@ -7,7 +7,6 @@ import Heading from "../components/Heading";
 import PostPreviewCard from "../components/PostPreviewCard";
 
 const Blog = ({ posts, categories }) => {
-  console.log(posts);
   posts.data.sort((a, b) => {
     Date.parse(b.attributes.createdAt) - Date.parse(a.attributes.createdAt);
   });
