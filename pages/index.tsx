@@ -119,7 +119,7 @@ const Blog = ({ posts, categories }) => {
   return (
     <LayoutComponent>
       <Head>
-        <title>The Good Life Guide</title>
+        <title>The Goodlife Guide</title>
       </Head>
       <Heading
         title={"The Good Life Guide."}

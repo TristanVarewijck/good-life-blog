@@ -14,7 +14,7 @@ const LayoutComponent = ({ children }) => {
         <div className="site-layout-content">{children}</div>
       </Content>
       <Footer className={styles.footer}>
-        The Good Life Guide. ©{currentYear}. Created by Tristan Varewijck.
+        The Goodlife Guide. ©{currentYear}. Created by Tristan Varewijck.
       </Footer>
     </Layout>
   );

@@ -35,15 +35,12 @@ const PostDetail = ({ post }) => {
       <Heading title={attributes.title} isCentered />
 
       <div className={styles.contentBox}>
-        <div style={{ marginBottom: "5px" }}>
+        <div style={{ marginBottom: "15px" }}>
           <Tag color="gold">{category}</Tag>
           <Tag icon={<EyeOutlined />} color="gold">
             {getAverageReadingTime(attributes.content)} min
           </Tag>
         </div>
-
-        {attributes.content}
-
         <div className={styles.imageContainer}>
           <Image
             alt={coverAlt}
@@ -52,14 +49,16 @@ const PostDetail = ({ post }) => {
             src={`${process.env.NEXT_PUBLIC_CMS_URL}${coverUrl}`}
           />
         </div>
-
+        {attributes.content}
         <div className={styles.authorBox}>
           <Avatar
             shape="square"
             icon={<RadarChartOutlined />}
             style={{ backgroundColor: "#111825", color: "#fff" }}
           />
-          <p style={{ margin: "0px" }}>The Goodlife Guide. | {publishDate}</p>
+          <p style={{ margin: "35px 0 0 0" }}>
+            The Goodlife Guide. | {publishDate}
+          </p>
         </div>
       </div>
     </LayoutComponent>
@@ -72,6 +71,8 @@ export const getStaticPaths = async () => {
       Authorization: `Bearer ${process.env.NEXT_PUBLIC_POST_CMS_ACTIONS}`,
     },
   });
+
+  //  add drafts paths
   const response = await postRes;
   const json = await response.json();
   const paths = json.data.map((content, _index) => ({
@@ -90,6 +91,8 @@ export const getStaticProps = async ({ params }) => {
       },
     }
   );
+
+  // add drafts routes
   const response = await postRes;
 
   return {
