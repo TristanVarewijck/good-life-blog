@@ -1,4 +1,4 @@
-import { Col, Row } from "antd";
+import { Row } from "antd";
 import Head from "next/head";
 import Link from "next/link";
 import Layout from "../../components/LayoutComponent";
@@ -23,7 +23,5 @@ const Gallery = () => {
     </Layout>
   );
 };
-
-export const getStaticProps = async () => {};
 
 export default Gallery;

@@ -1,4 +1,4 @@
-import { Avatar, Breadcrumb, Tag } from "antd";
+import { Alert, Avatar, Breadcrumb, Tag } from "antd";
 import Head from "next/head";
 import Heading from "../components/Heading";
 import LayoutComponent from "../components/LayoutComponent";
@@ -6,15 +6,23 @@ import styles from "./index.module.scss";
 import { getDateFormatCreatedAt } from "../components/Utils/parseDate";
 import { getAverageReadingTime } from "../components/Utils/readingTime";
 import Image from "next/image";
-import { RadarChartOutlined, EyeOutlined } from "@ant-design/icons";
 import Link from "next/link";
+import { RadarChartOutlined, EyeOutlined } from "@ant-design/icons";
 
-const PostDetail = ({ post }) => {
-  const { attributes } = post.data[0];
+const PostDetail = ({ publishedPosts, draftPosts }) => {
+  const allPosts = [...publishedPosts.data, ...draftPosts.data];
+  const { attributes } = allPosts[0];
   const publishDate = getDateFormatCreatedAt(attributes.createdAt);
   const coverUrl = attributes.cover.data.attributes.url;
   const coverAlt = attributes.cover.data.attributes.name;
   const category = attributes.category.data.attributes.name;
+
+  if (!attributes.publishedAt) {
+    console.log("This is private!");
+    // alert("This is a Draft and needs authentication");
+  } else {
+    console.log("This is public");
+  }
 
   return (
     <LayoutComponent>
@@ -32,6 +40,14 @@ const PostDetail = ({ post }) => {
           },
         ]}
       />
+
+      {!attributes.publishedAt && (
+        <Alert
+          message="This is a draft post!"
+          type="error"
+          style={{ marginTop: "25px", textAlign: "center" }}
+        />
+      )}
       <Heading title={attributes.title} isCentered />
 
       <div className={styles.contentBox}>
@@ -66,16 +82,30 @@ const PostDetail = ({ post }) => {
 };
 
 export const getStaticPaths = async () => {
-  const postRes = fetch(`${process.env.NEXT_PUBLIC_CMS_URL}/api/posts`, {
-    headers: {
-      Authorization: `Bearer ${process.env.NEXT_PUBLIC_POST_CMS_ACTIONS}`,
-    },
-  });
+  const postPublishedRes = fetch(
+    `${process.env.NEXT_PUBLIC_CMS_URL}/api/posts`,
+    {
+      headers: {
+        Authorization: `Bearer ${process.env.NEXT_PUBLIC_POST_CMS_ACTIONS}`,
+      },
+    }
+  );
 
-  //  add drafts paths
-  const response = await postRes;
-  const json = await response.json();
-  const paths = json.data.map((content, _index) => ({
+  const postDraftsRes = fetch(
+    `${process.env.NEXT_PUBLIC_CMS_URL}/api/posts?publicationState=preview&filters[publishedAt][$null]=true`,
+    {
+      headers: {
+        Authorization: `Bearer ${process.env.NEXT_PUBLIC_POST_CMS_ACTIONS}`,
+      },
+    }
+  );
+
+  const response = await Promise.all([postPublishedRes, postDraftsRes]);
+  const published = await response[0].json();
+  const drafts = await response[1].json();
+
+  const posts = [...published.data, ...drafts.data];
+  const paths = posts.map((content, _index) => ({
     params: { pid: content.attributes.slug },
   }));
 
@@ -83,7 +113,7 @@ export const getStaticPaths = async () => {
 };
 
 export const getStaticProps = async ({ params }) => {
-  const postRes = fetch(
+  const publishRes = fetch(
     `${process.env.NEXT_PUBLIC_CMS_URL}/api/posts?filters[slug]=${params.pid}&populate=*`,
     {
       headers: {
@@ -92,12 +122,21 @@ export const getStaticProps = async ({ params }) => {
     }
   );
 
-  // add drafts routes
-  const response = await postRes;
+  const draftRes = fetch(
+    `${process.env.NEXT_PUBLIC_CMS_URL}/api/posts?publicationState=preview&filters[publishedAt][$null]=true&filters[slug]=${params.pid}&populate=*`,
+    {
+      headers: {
+        Authorization: `Bearer ${process.env.NEXT_PUBLIC_POST_CMS_ACTIONS}`,
+      },
+    }
+  );
+
+  const response = await Promise.all([publishRes, draftRes]);
 
   return {
     props: {
-      post: await response.json(),
+      publishedPosts: await response[0].json(),
+      draftPosts: await response[1].json(),
     },
   };
 };

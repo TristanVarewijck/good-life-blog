@@ -21,6 +21,7 @@ const PostPreviewCard = ({
 
   return (
     <Card
+      style={{ boxShadow: "0px 4px 12px rgba(0,0,0,0.1)" }}
       key={uid}
       hoverable
       cover={
@@ -34,11 +35,11 @@ const PostPreviewCard = ({
           />
         </div>
       }
-      actions={[
-        <LikeOutlined key="like" />,
-        <EditOutlined key="comment" />,
-        <SendOutlined key="share" />,
-      ]}
+      // actions={[
+      //   <LikeOutlined key="like" />,
+      //   <EditOutlined key="comment" />,
+      //   <SendOutlined key="share" />,
+      // ]}
     >
       <div onClick={() => router.push(slug)}>
         <small

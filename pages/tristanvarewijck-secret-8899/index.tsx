@@ -29,7 +29,7 @@ const Admin = ({ postDrafts, categories, postPublished }) => {
   const [isGeneratingPost, setIsGeneratingPost] = useState<boolean>(false);
   const [form] = Form.useForm();
 
-  // handling the submission
+  // handling the submission / fix with CLOUD Function
   const onFinish = async (values: any) => {
     setIsGeneratingPost(true);
     try {
@@ -56,7 +56,12 @@ const Admin = ({ postDrafts, categories, postPublished }) => {
 
       // image url / response / blob
       const generatedImageUrl = await imageCompletion.data.data[0].url;
-      const resGeneratedImageUrl = await fetch(generatedImageUrl);
+      console.log(generatedImageUrl);
+      const resGeneratedImageUrl = await fetch(generatedImageUrl, {
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+        },
+      });
       const resGeneratedImageUrlBlob = await resGeneratedImageUrl.blob();
 
       // new post object
@@ -65,7 +70,7 @@ const Admin = ({ postDrafts, categories, postPublished }) => {
           title: values.title,
           content: generatedContent,
           category: categoryObj,
-          slug: values.title.split(" ").join("_"),
+          slug: values.title.split(" ").join("-"),
           publishedAt: null,
         },
       };
@@ -86,7 +91,7 @@ const Admin = ({ postDrafts, categories, postPublished }) => {
       // Just uploaded object from response
       const newPostDraftData = await newPostDraftResponse.json();
 
-      // connect the generated image to the just uploaded obect
+      // connect the generated image to the just uploaded object
       const imageData = await new FormData();
       await imageData.append(
         "files",

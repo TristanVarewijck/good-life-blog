@@ -1,9 +1,9 @@
 import { Layout } from "antd";
 import Navbar from "../Navbar";
+import FooterCustom from "../FooterCustom";
 import styles from "./layout.module.scss";
 
 const LayoutComponent = ({ children }) => {
-  const currentYear = new Date().getFullYear();
   const { Header, Content, Footer } = Layout;
   return (
     <Layout className={`layout ${styles.layoutEdits}`}>
@@ -13,8 +13,8 @@ const LayoutComponent = ({ children }) => {
       <Content>
         <div className="site-layout-content">{children}</div>
       </Content>
-      <Footer className={styles.footer}>
-        The Goodlife Guide. ©{currentYear}. Created by Tristan Varewijck.
+      <Footer>
+        <FooterCustom />
       </Footer>
     </Layout>
   );
